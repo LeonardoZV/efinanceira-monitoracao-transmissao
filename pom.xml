@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>	
+	<groupId>br.com.efinanceira</groupId>
+	<artifactId>efinanceira-monitoracao-transmissao</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>	
+	<name>efinanceira-monitoracao-transmissao</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>11</java.version>
+		<scala.version>2.12.13</scala.version>
+		<scala.compat.version>2.12</scala.compat.version>
+		<spark.version>3.1.1</spark.version>
+		<confluent.version>5.3.0</confluent.version>
+	</properties>
+
+   <repositories>
+        <repository>
+            <id>confluent</id>
+            <url>http://packages.confluent.io/maven/</url>
+        </repository>
+    </repositories>	
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-library</artifactId>
+			<version>${scala.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-xml_${scala.compat.version}</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-parser-combinators_${scala.compat.version}</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-swing_${scala.compat.version}</artifactId>
+			<version>2.0.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scalatest</groupId>
+			<artifactId>scalatest_2.12</artifactId>
+			<version>3.2.7</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.apache.spark</groupId>
+		    <artifactId>spark-core_${scala.compat.version}</artifactId>
+		    <version>${spark.version}</version>
+		    <scope>provided</scope>
+		</dependency>	    
+
+		<dependency>
+		  <groupId>org.apache.spark</groupId>
+		  <artifactId>spark-sql_${scala.compat.version}</artifactId>
+		  <version>${spark.version}</version>
+		</dependency>
+
+	    <dependency>
+		    <groupId>org.apache.spark</groupId>
+		    <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
+		    <version>${spark.version}</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.apache.spark</groupId>
+		    <artifactId>spark-avro_${scala.compat.version}</artifactId>
+		    <version>${spark.version}</version>
+		</dependency>
+		
+<!-- 		<dependency> -->
+<!-- 		  <groupId>io.confluent</groupId> -->
+<!-- 		  <artifactId>kafka-schema-registry-client</artifactId> -->
+<!-- 		  <version>${confluent.version}</version> -->
+<!-- 		</dependency> -->
+		
+		<dependency>
+		  <groupId>io.confluent</groupId>
+		  <artifactId>kafka-avro-serializer</artifactId>
+		  <version>${confluent.version}</version>
+		</dependency>
+		
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<source>11</source>
+					<target>11</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>net.alchim31.maven</groupId>
+				<artifactId>scala-maven-plugin</artifactId>
+				<version>4.4.1</version>
+				<executions>
+					<execution>
+						<id>scala-compile-first</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>add-source</goal>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<scalaVersion>${scala.version}</scalaVersion>
+				</configuration>
+			</plugin>
+	    </plugins>
+	</build>
+  
+</project>
