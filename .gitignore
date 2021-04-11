@@ -29,3 +29,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Específicos ###
+src/main/resources/application-confluent.properties
