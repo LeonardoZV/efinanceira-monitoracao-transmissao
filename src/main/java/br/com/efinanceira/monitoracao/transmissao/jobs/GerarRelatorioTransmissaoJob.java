@@ -56,7 +56,7 @@ public class GerarRelatorioTransmissaoJob {
 		Dataset<Row> aggregatedData = rawData
 				.sqlContext().sql("SELECT payload.data.codigo_produto_operacional, COUNT(*) as quantidade_eventos_transmitidos, COUNT(case when payload.data.codigo_empresa = 341 then 1 else null end) as quantidade_eventos_transmitidos_sucesso, COUNT(case when payload.data.codigo_empresa = 350 then 1 else null end) as quantidade_eventos_transmitidos_erro FROM evento GROUP BY payload.data.codigo_produto_operacional")
 				.withColumn("data",	struct("*"))
-				.withColumn("value", concat(lit(magicByte).cast("binary"), lit(idBytes).cast("binary"), to_avro(struct("data"), schemaMetadata.getSchema())).cast("binary"))
+				.withColumn("value", concat(lit(magicByte), lit(idBytes), to_avro(struct("data"), schemaMetadata.getSchema())))
 				.withColumn("headers",
 						array(
 								struct(lit("specversion").as("key"), lit("1").cast("binary").as("value")),
