@@ -61,7 +61,7 @@ public class GerarRelatorioTransmissaoJob {
 						array(
 								struct(lit("specversion").as("key"), lit("1").cast("binary").as("value")),
 								struct(lit("type").as("key"), lit("").cast("binary").as("value")),
-								struct(lit("source").as("key"), lit("urn:sigla:efinanceira-monitoracao-transmissao-spark").cast("binary").as("value")),
+								struct(lit("source").as("key"), lit("urn:sigla:gerar-relatorio-transmissao-job").cast("binary").as("value")),
 								struct(lit("id").as("key"), expr("uuid()").cast("binary").as("value")),
 								struct(lit("time").as("key"), date_format(current_timestamp(), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").cast("binary").as("value")),
 								struct(lit("messageversion").as("key"), lit("1").cast("binary").as("value")),
