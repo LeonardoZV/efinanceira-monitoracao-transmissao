@@ -57,13 +57,12 @@ public class GerarRelatorioTransmissaoJob {
 				.sqlContext().sql("SELECT payload.data.codigo_produto_operacional, COUNT(*) as quantidade_eventos_transmitidos, COUNT(case when payload.data.codigo_empresa = 341 then 1 else null end) as quantidade_eventos_transmitidos_sucesso, COUNT(case when payload.data.codigo_empresa = 350 then 1 else null end) as quantidade_eventos_transmitidos_erro FROM evento GROUP BY payload.data.codigo_produto_operacional")
 				.withColumn("data",	struct("*"))
 				.withColumn("value", concat(lit(magicByte).cast("binary"), lit(idBytes).cast("binary"), to_avro(struct("data"), schemaMetadata.getSchema())).cast("binary"))
-				.selectExpr("uuid() as id", "value")
 				.withColumn("headers",
 						array(
 								struct(lit("specversion").as("key"), lit("1").cast("binary").as("value")),
 								struct(lit("type").as("key"), lit("").cast("binary").as("value")),
 								struct(lit("source").as("key"), lit("urn:sigla:efinanceira-monitoracao-transmissao-spark").cast("binary").as("value")),
-								struct(lit("id").as("key"), col("id").cast("binary").as("value")),
+								struct(lit("id").as("key"), expr("uuid()").cast("binary").as("value")),
 								struct(lit("time").as("key"), date_format(current_timestamp(), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").cast("binary").as("value")),
 								struct(lit("messageversion").as("key"), lit("1").cast("binary").as("value")),
 								struct(lit("transactionid").as("key"), lit("").cast("binary").as("value")),
@@ -76,17 +75,17 @@ public class GerarRelatorioTransmissaoJob {
 
 		StreamingQuery query = aggregatedData
 				.writeStream()
-//				.format("console")
-//				.outputMode("update")
-//				.option("truncate", false)
-				.format("kafka")
+				.format("console")
 				.outputMode("update")
-				.option("kafka.bootstrap.servers", "pkc-epwny.eastus.azure.confluent.cloud:9092")
-				.option("kafka.security.protocol", "SASL_SSL")
-				.option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule   required username='BIMCMFF6WU3YBB34'   password='Xnr9geulvxPYeyNeL2r56iyjNG5dwkB2CTnQz+syVZwOUfJIQFxmSJT0+MskxOnQ';")
-				.option("kafka.sasl.mechanism", "PLAIN")
-				.option("topic", "relatorio-transmissao")
-				.option("includeHeaders", "true")
+				.option("truncate", false)
+//				.format("kafka")
+//				.outputMode("update")
+//				.option("kafka.bootstrap.servers", "pkc-epwny.eastus.azure.confluent.cloud:9092")
+//				.option("kafka.security.protocol", "SASL_SSL")
+//				.option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule   required username='BIMCMFF6WU3YBB34'   password='Xnr9geulvxPYeyNeL2r56iyjNG5dwkB2CTnQz+syVZwOUfJIQFxmSJT0+MskxOnQ';")
+//				.option("kafka.sasl.mechanism", "PLAIN")
+//				.option("topic", "relatorio-transmissao")
+//				.option("includeHeaders", "true")
 				.option("checkpointLocation", "D:\\hadoop\\bkt-agg-data\\checkpoint")
 //				.trigger(Trigger.Once())
 				.start();

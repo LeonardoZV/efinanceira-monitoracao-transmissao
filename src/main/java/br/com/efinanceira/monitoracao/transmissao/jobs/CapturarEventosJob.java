@@ -56,7 +56,7 @@ public class CapturarEventosJob {
                 .load();
 
         Dataset<Row> parsedData = rawData
-                .selectExpr("topic", "partition", "offset", "converterHeadersParaMap(headers) as headers", "substring(value, 6) as avrovalue")
+                .withColumn("headers", expr("converterHeadersParaMap(headers)"))
                 .select(col("topic"),
                         col("partition"),
                         col("offset"),
@@ -70,8 +70,7 @@ public class CapturarEventosJob {
                         col("headers").getItem("transactionid").cast("string").as("transactionid"),
                         col("headers").getItem("correlationid").cast("string").as("correlationid"),
                         col("headers").getItem("datacontenttype").cast("string").as("datacontenttype"),
-                        col("idschemaregistry"),
-                        from_avro(col("avrovalue"), schemaMetadata.getSchema()).as("payload"))
+                        from_avro(expr("substring(value, 6)"), schemaMetadata.getSchema()).as("payload"))
                 .withColumn("date", to_date(col("time")))
                 .withWatermark("time", "2 minutes")
                 .dropDuplicates("id");
