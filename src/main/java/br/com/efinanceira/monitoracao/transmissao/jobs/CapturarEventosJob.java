@@ -91,15 +91,6 @@ public class CapturarEventosJob {
                 .trigger(Trigger.Once())
                 .start();
 
-//    	StreamingQuery query = parsedData
-//    			.sqlContext().sql("SELECT payload.data.codigo_produto_operacional, COUNT(*) as quantidade_eventos_transmitidos, COUNT(case when payload.data.codigo_empresa = 341 then 1 else null end) as quantidade_eventos_transmitidos_sucesso, COUNT(case when payload.data.codigo_empresa = 350 then 1 else null end) as quantidade_eventos_transmitidos_erro FROM evento GROUP BY payload.data.codigo_produto_operacional")
-//    			.writeStream()
-//    		    .format("console")
-//    		    .outputMode("update")
-////    		    .option("checkpointLocation", "D:\\hadoop\\bkt-agg-data\\checkpoint")
-////    		    .trigger(Trigger.Once())
-//    			.start();
-
         query.awaitTermination();
 
     }
