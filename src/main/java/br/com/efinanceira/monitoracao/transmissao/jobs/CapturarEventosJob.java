@@ -1,7 +1,11 @@
 package br.com.efinanceira.monitoracao.transmissao.jobs;
 
+import static org.apache.spark.sql.avro.functions.*;
+import static org.apache.spark.sql.functions.*;
+
 import br.com.efinanceira.monitoracao.transmissao.common.UserDefinedFunctionsFactory;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.RestService;
 import org.apache.spark.sql.Dataset;
@@ -14,22 +18,29 @@ import org.apache.spark.sql.types.DataTypes;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.spark.sql.avro.functions.from_avro;
-import static org.apache.spark.sql.functions.col;
-import static org.apache.spark.sql.functions.to_date;
-
 public class CapturarEventosJob {
 
     public static void executar(String[] args) throws Exception {
 
+        Map<String, String> props = new HashMap<>();
+
+        props.put("basic.auth.credentials.source", "USER_INFO");
+        props.put("schema.registry.basic.auth.user.info", "2BEQE2KDNBJGDH2Y:8nixndjUyjXqTJoXnm3X3GwLZPz5F8umq74/g9ioG2mIi4lm0CWF1nUAf8deIFbP");
+
+        RestService restService = new RestService("https://psrc-4j1d2.westus2.azure.confluent.cloud");
+
+        SchemaRegistryClient schemaRegistryClient = new CachedSchemaRegistryClient(restService, 100, props);
+
+        SchemaMetadata schemaMetadata = schemaRegistryClient.getLatestSchemaMetadata("processamento-ted-value");
+
         SparkSession spark = SparkSession.builder()
                 .appName("CapturarEventosJob")
                 .master("local[*]")
-//                .config("spark.executor.instances", 6)
-//                .config("spark.executor.cores", 1)
                 .getOrCreate();
 
         spark.sparkContext().setLogLevel("ERROR");
+
+        spark.udf().register("converterHeadersParaMap", UserDefinedFunctionsFactory.converterHeadersParaMap(), DataTypes.createMapType(DataTypes.StringType, DataTypes.BinaryType));
 
         Dataset<Row> rawData = spark
                 .readStream()
@@ -44,30 +55,8 @@ public class CapturarEventosJob {
                 .option("includeHeaders", "true")
                 .load();
 
-        Map<String, String> props = new HashMap<>();
-
-        props.put("basic.auth.credentials.source", "USER_INFO");
-
-        props.put("schema.registry.basic.auth.user.info", "2BEQE2KDNBJGDH2Y:8nixndjUyjXqTJoXnm3X3GwLZPz5F8umq74/g9ioG2mIi4lm0CWF1nUAf8deIFbP");
-
-        RestService restService = new RestService("https://psrc-4j1d2.westus2.azure.confluent.cloud");
-
-        SchemaRegistryClient schemaRegistryClient = new CachedSchemaRegistryClient(restService, 100, props);
-
-        String jsonFormatSchema = schemaRegistryClient.getLatestSchemaMetadata("processamento-ted-value").getSchema();
-
-        spark.udf().register("converterIdSchemaRegistryParaInteger", UserDefinedFunctionsFactory.converterIdSchemaRegistryParaInteger(), DataTypes.IntegerType);
-
-        spark.udf().register("converterHeadersParaMap", UserDefinedFunctionsFactory.converterHeadersParaMap(), DataTypes.createMapType(DataTypes.StringType, DataTypes.BinaryType));
-
         Dataset<Row> parsedData = rawData
-                .selectExpr("topic",
-                        "partition",
-                        "offset",
-                        "converterHeadersParaMap(headers) AS headers",
-                        "value",
-                        "converterIdSchemaRegistryParaInteger(substring(value, 1, 5)) AS idschemaregistry",
-                        "substring(value, 6) AS avrovalue")
+                .selectExpr("topic", "partition", "offset", "converterHeadersParaMap(headers) as headers", "substring(value, 6) as avrovalue")
                 .select(col("topic"),
                         col("partition"),
                         col("offset"),
@@ -82,17 +71,14 @@ public class CapturarEventosJob {
                         col("headers").getItem("correlationid").cast("string").as("correlationid"),
                         col("headers").getItem("datacontenttype").cast("string").as("datacontenttype"),
                         col("idschemaregistry"),
-                        from_avro(col("avrovalue"), jsonFormatSchema).as("payload"))
+                        from_avro(col("avrovalue"), schemaMetadata.getSchema()).as("payload"))
                 .withColumn("date", to_date(col("time")))
                 .withWatermark("time", "2 minutes")
                 .dropDuplicates("id");
 
-        parsedData.createOrReplaceTempView("evento");
-
         parsedData.printSchema();
 
         StreamingQuery query = parsedData
-                .sqlContext().sql("SELECT * FROM evento")
                 .writeStream()
 //				.format("console")
 //       		.outputMode("update")
