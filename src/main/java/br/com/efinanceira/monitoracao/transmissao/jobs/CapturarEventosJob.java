@@ -25,7 +25,7 @@ public class CapturarEventosJob {
         Map<String, String> props = new HashMap<>();
 
         props.put("basic.auth.credentials.source", "USER_INFO");
-        props.put("schema.registry.basic.auth.user.info", "2BEQE2KDNBJGDH2Y:8nixndjUyjXqTJoXnm3X3GwLZPz5F8umq74/g9ioG2mIi4lm0CWF1nUAf8deIFbP");
+        props.put("basic.auth.user.info", "2BEQE2KDNBJGDH2Y:8nixndjUyjXqTJoXnm3X3GwLZPz5F8umq74/g9ioG2mIi4lm0CWF1nUAf8deIFbP");
 
         RestService restService = new RestService("https://psrc-4j1d2.westus2.azure.confluent.cloud");
 
@@ -38,7 +38,7 @@ public class CapturarEventosJob {
                 .master("local[*]")
                 .getOrCreate();
 
-        spark.sparkContext().setLogLevel("ERROR");
+        spark.sparkContext().setLogLevel("WARN");
 
         spark.udf().register("converterHeadersParaMap", UserDefinedFunctionsFactory.converterHeadersParaMap(), DataTypes.createMapType(DataTypes.StringType, DataTypes.BinaryType));
 
@@ -85,8 +85,8 @@ public class CapturarEventosJob {
                 .partitionBy("date")
                 .format("parquet")
                 .outputMode("append")
-                .option("path","D:\\hadoop\\bkt-raw-data\\data")
-                .option("checkpointLocation", "D:\\hadoop\\bkt-raw-data\\checkpoint")
+                .option("path","D:\\s3\\bkt-raw-data\\data")
+                .option("checkpointLocation", "D:\\s3\\bkt-raw-data\\checkpoint")
                 .trigger(Trigger.Once())
                 .start();
 

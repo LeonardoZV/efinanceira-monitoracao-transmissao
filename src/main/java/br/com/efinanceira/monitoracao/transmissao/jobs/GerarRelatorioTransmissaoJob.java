@@ -25,7 +25,7 @@ public class GerarRelatorioTransmissaoJob {
 		Map<String, String> props = new HashMap<>();
 
 		props.put("basic.auth.credentials.source", "USER_INFO");
-		props.put("schema.registry.basic.auth.user.info", "2BEQE2KDNBJGDH2Y:8nixndjUyjXqTJoXnm3X3GwLZPz5F8umq74/g9ioG2mIi4lm0CWF1nUAf8deIFbP");
+		props.put("basic.auth.user.info", "2BEQE2KDNBJGDH2Y:8nixndjUyjXqTJoXnm3X3GwLZPz5F8umq74/g9ioG2mIi4lm0CWF1nUAf8deIFbP");
 
 		RestService restService = new RestService("https://psrc-4j1d2.westus2.azure.confluent.cloud");
 
@@ -42,13 +42,13 @@ public class GerarRelatorioTransmissaoJob {
                 .master("local[*]")
                 .getOrCreate();
 
-		spark.sparkContext().setLogLevel("ERROR");
+		spark.sparkContext().setLogLevel("WARN");
 
         Dataset<Row> rawData = spark
 				.readStream()
 				.format("parquet")
-				.schema(spark.read().parquet("D:\\hadoop\\bkt-raw-data\\data").schema())
-				.option("path", "D:\\hadoop\\bkt-raw-data\\data")
+				.schema(spark.read().parquet("D:\\s3\\bkt-raw-data\\data").schema())
+				.option("path", "D:\\s3\\bkt-raw-data\\data")
 				.load();
 
 		rawData.createOrReplaceTempView("evento");
@@ -57,7 +57,7 @@ public class GerarRelatorioTransmissaoJob {
 				.sqlContext().sql("SELECT payload.data.codigo_produto_operacional, COUNT(*) as quantidade_eventos_transmitidos, COUNT(case when payload.data.codigo_empresa = 341 then 1 else null end) as quantidade_eventos_transmitidos_sucesso, COUNT(case when payload.data.codigo_empresa = 350 then 1 else null end) as quantidade_eventos_transmitidos_erro FROM evento GROUP BY payload.data.codigo_produto_operacional")
 				.withColumn("data",	struct("*"))
 				.withColumn("value", concat(lit(magicByte), lit(idBytes), to_avro(struct("data"), schemaMetadata.getSchema())))
-				.withColumn("headers",
+				.withColumn("headers ",
 						array(
 								struct(lit("specversion").as("key"), lit("1").cast("binary").as("value")),
 								struct(lit("type").as("key"), lit("").cast("binary").as("value")),
@@ -86,7 +86,7 @@ public class GerarRelatorioTransmissaoJob {
 //				.option("kafka.sasl.mechanism", "PLAIN")
 //				.option("topic", "relatorio-transmissao")
 //				.option("includeHeaders", "true")
-				.option("checkpointLocation", "D:\\hadoop\\bkt-agg-data\\checkpoint")
+				.option("checkpointLocation", "D:\\s3\\bkt-agg-data\\checkpoint")
 //				.trigger(Trigger.Once())
 				.start();
 
