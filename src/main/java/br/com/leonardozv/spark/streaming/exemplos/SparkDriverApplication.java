@@ -1,7 +1,7 @@
-package br.com.efinanceira.monitoracao.transmissao;
+package br.com.leonardozv.spark.streaming.exemplos;
 
-import br.com.efinanceira.monitoracao.transmissao.jobs.CapturarEventosJob;
-import br.com.efinanceira.monitoracao.transmissao.jobs.GerarRelatorioTransmissaoJob;
+import br.com.leonardozv.spark.streaming.exemplos.jobs.CapturarEventosJob;
+import br.com.leonardozv.spark.streaming.exemplos.jobs.GerarRelatorioTransmissaoJob;
 
 public class SparkDriverApplication
 {

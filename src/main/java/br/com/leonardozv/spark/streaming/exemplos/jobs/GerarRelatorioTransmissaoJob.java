@@ -1,4 +1,4 @@
-package br.com.efinanceira.monitoracao.transmissao.jobs;
+package br.com.leonardozv.spark.streaming.exemplos.jobs;
 
 import static org.apache.spark.sql.avro.functions.*;
 import static org.apache.spark.sql.functions.*;

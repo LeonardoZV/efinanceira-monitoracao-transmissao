@@ -1,4 +1,4 @@
-package br.com.efinanceira.monitoracao.transmissao.common;
+package br.com.leonardozv.spark.streaming.exemplos.common;
 
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.spark.sql.Row;

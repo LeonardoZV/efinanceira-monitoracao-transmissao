@@ -1,9 +1,9 @@
-package br.com.efinanceira.monitoracao.transmissao.jobs;
+package br.com.leonardozv.spark.streaming.exemplos.jobs;
 
 import static org.apache.spark.sql.avro.functions.*;
 import static org.apache.spark.sql.functions.*;
 
-import br.com.efinanceira.monitoracao.transmissao.common.UserDefinedFunctionsFactory;
+import br.com.leonardozv.spark.streaming.exemplos.common.UserDefinedFunctionsFactory;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
