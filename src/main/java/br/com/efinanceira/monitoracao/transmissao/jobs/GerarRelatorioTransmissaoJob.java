@@ -75,19 +75,19 @@ public class GerarRelatorioTransmissaoJob {
 
 		StreamingQuery query = aggregatedData
 				.writeStream()
-				.format("console")
-				.outputMode("update")
-				.option("truncate", false)
-//				.format("kafka")
+//				.format("console")
 //				.outputMode("update")
-//				.option("kafka.bootstrap.servers", "pkc-epwny.eastus.azure.confluent.cloud:9092")
-//				.option("kafka.security.protocol", "SASL_SSL")
-//				.option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule   required username='BIMCMFF6WU3YBB34'   password='Xnr9geulvxPYeyNeL2r56iyjNG5dwkB2CTnQz+syVZwOUfJIQFxmSJT0+MskxOnQ';")
-//				.option("kafka.sasl.mechanism", "PLAIN")
-//				.option("topic", "relatorio-transmissao")
-//				.option("includeHeaders", "true")
+//				.option("truncate", false)
+				.format("kafka")
+				.outputMode("update")
+				.option("kafka.bootstrap.servers", "pkc-epwny.eastus.azure.confluent.cloud:9092")
+				.option("kafka.security.protocol", "SASL_SSL")
+				.option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule   required username='BIMCMFF6WU3YBB34'   password='Xnr9geulvxPYeyNeL2r56iyjNG5dwkB2CTnQz+syVZwOUfJIQFxmSJT0+MskxOnQ';")
+				.option("kafka.sasl.mechanism", "PLAIN")
+				.option("topic", "relatorio-transmissao")
+				.option("includeHeaders", "true")
 				.option("checkpointLocation", "D:\\s3\\bkt-agg-data\\checkpoint")
-//				.trigger(Trigger.Once())
+				.trigger(Trigger.Once())
 				.start();
 
         query.awaitTermination();
