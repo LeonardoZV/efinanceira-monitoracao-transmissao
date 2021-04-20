@@ -3,7 +3,7 @@ package br.com.leonardozv.spark.streaming.exemplos.jobs;
 import static org.apache.spark.sql.avro.functions.*;
 import static org.apache.spark.sql.functions.*;
 
-import br.com.leonardozv.spark.streaming.exemplos.common.UserDefinedFunctionsFactory;
+import br.com.leonardozv.spark.streaming.exemplos.udfs.ConveterHeadersParaMap;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -40,7 +40,7 @@ public class CapturarEventosJob {
 
         spark.sparkContext().setLogLevel("WARN");
 
-        spark.udf().register("converterHeadersParaMap", UserDefinedFunctionsFactory.converterHeadersParaMap(), DataTypes.createMapType(DataTypes.StringType, DataTypes.BinaryType));
+        spark.udf().registerJava("converterHeadersParaMap", ConveterHeadersParaMap.class.toString(), DataTypes.createMapType(DataTypes.StringType, DataTypes.BinaryType));
 
         Dataset<Row> rawData = spark
                 .readStream()
