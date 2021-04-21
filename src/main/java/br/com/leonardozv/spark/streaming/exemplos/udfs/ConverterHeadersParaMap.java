@@ -8,7 +8,7 @@ import scala.collection.mutable.WrappedArray;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ConveterHeadersParaMap implements UDF1<WrappedArray<Row>, Map<String, byte[]>> {
+public class ConverterHeadersParaMap implements UDF1<WrappedArray<Row>, Map<String, byte[]>> {
 
     private static final long serialVersionUID = 1L;
 

@@ -5,7 +5,7 @@ import org.apache.spark.sql.api.java.UDF1;
 
 import java.nio.ByteBuffer;
 
-public class ConveterIdSchemaRegistryParaInteger implements UDF1<byte[], Integer> {
+public class ConverterIdSchemaRegistryParaInteger implements UDF1<byte[], Integer> {
 
     private static final long serialVersionUID = 1L;
 
