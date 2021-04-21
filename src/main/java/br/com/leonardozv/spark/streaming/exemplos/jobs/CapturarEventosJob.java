@@ -42,8 +42,7 @@ public class CapturarEventosJob {
 
         spark.udf().registerJava("converterHeadersParaMap", ConveterHeadersParaMap.class.toString(), DataTypes.createMapType(DataTypes.StringType, DataTypes.BinaryType));
 
-        Dataset<Row> rawData = spark
-                .readStream()
+        spark.readStream()
                 .format("kafka")
                 .option("kafka.bootstrap.servers", "pkc-epwny.eastus.azure.confluent.cloud:9092")
                 .option("kafka.security.protocol", "SASL_SSL")
@@ -53,9 +52,7 @@ public class CapturarEventosJob {
                 .option("subscribe", "processamento-ted")
                 .option("startingOffsets", "earliest")
                 .option("includeHeaders", "true")
-                .load();
-
-        Dataset<Row> parsedData = rawData
+                .load()
                 .withColumn("headers", expr("converterHeadersParaMap(headers)"))
                 .select(col("topic"),
                         col("partition"),
@@ -73,11 +70,7 @@ public class CapturarEventosJob {
                         from_avro(expr("substring(value, 6)"), schemaMetadata.getSchema()).as("payload"))
                 .withColumn("date", to_date(col("time")))
                 .withWatermark("time", "2 minutes")
-                .dropDuplicates("id");
-
-        parsedData.printSchema();
-
-        StreamingQuery query = parsedData
+                .dropDuplicates("id")
                 .writeStream()
 //				.format("console")
 //       		.outputMode("update")
@@ -85,12 +78,11 @@ public class CapturarEventosJob {
                 .partitionBy("date")
                 .format("parquet")
                 .outputMode("append")
-                .option("path","D:\\s3\\bkt-raw-data\\data")
-                .option("checkpointLocation", "D:\\s3\\bkt-raw-data\\checkpoint")
+                .option("path","D:\\s3\\bkt-staging-data")
+                .option("checkpointLocation", "D:\\s3\\bkt-checkpoint-data\\capturar-eventos-job")
                 .trigger(Trigger.Once())
-                .start();
-
-        query.awaitTermination();
+                .start()
+                .awaitTermination();
 
     }
 

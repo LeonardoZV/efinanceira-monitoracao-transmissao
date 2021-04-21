@@ -44,17 +44,16 @@ public class GerarRelatorioTransmissaoJob {
 
 		spark.sparkContext().setLogLevel("WARN");
 
-        Dataset<Row> rawData = spark
+        Dataset<Row> stagingData = spark
 				.readStream()
 				.format("parquet")
-				.schema(spark.read().parquet("D:\\s3\\bkt-raw-data\\data").schema())
-				.option("path", "D:\\s3\\bkt-raw-data\\data")
+				.schema(spark.read().parquet("D:\\s3\\bkt-staging-data").schema())
+				.option("path", "D:\\s3\\bkt-staging-data")
 				.load();
 
-		rawData.createOrReplaceTempView("evento");
+		stagingData.createOrReplaceTempView("evento");
 
-		Dataset<Row> aggregatedData = rawData
-				.sqlContext().sql("SELECT payload.data.codigo_produto_operacional, COUNT(*) as quantidade_eventos_transmitidos, COUNT(case when payload.data.codigo_empresa = 341 then 1 else null end) as quantidade_eventos_transmitidos_sucesso, COUNT(case when payload.data.codigo_empresa = 350 then 1 else null end) as quantidade_eventos_transmitidos_erro FROM evento GROUP BY payload.data.codigo_produto_operacional")
+		stagingData.sqlContext().sql("SELECT payload.data.codigo_produto_operacional, COUNT(*) as quantidade_eventos_transmitidos, COUNT(case when payload.data.codigo_empresa = 341 then 1 else null end) as quantidade_eventos_transmitidos_sucesso, COUNT(case when payload.data.codigo_empresa = 350 then 1 else null end) as quantidade_eventos_transmitidos_erro FROM evento GROUP BY payload.data.codigo_produto_operacional")
 				.withColumn("data",	struct("*"))
 				.withColumn("value", concat(lit(magicByte), lit(idBytes), to_avro(struct("data"), schemaMetadata.getSchema())))
 				.withColumn("headers ",
@@ -69,11 +68,7 @@ public class GerarRelatorioTransmissaoJob {
 								struct(lit("correlationid").as("key"), lit("").cast("binary").as("value")),
 								struct(lit("datacontenttype").as("key"), lit("application/avro").cast("binary").as("value"))
 						)
-				);
-
-		aggregatedData.printSchema();
-
-		StreamingQuery query = aggregatedData
+				)
 				.writeStream()
 //				.format("console")
 //				.outputMode("update")
@@ -86,11 +81,10 @@ public class GerarRelatorioTransmissaoJob {
 				.option("kafka.sasl.mechanism", "PLAIN")
 				.option("topic", "relatorio-transmissao")
 				.option("includeHeaders", "true")
-				.option("checkpointLocation", "D:\\s3\\bkt-agg-data\\checkpoint")
+				.option("checkpointLocation", "D:\\s3\\bkt-checkpoint-data\\gerar-relatorio-transmissao-job")
 				.trigger(Trigger.Once())
-				.start();
-
-        query.awaitTermination();
+				.start()
+				.awaitTermination();
 
     }
 
