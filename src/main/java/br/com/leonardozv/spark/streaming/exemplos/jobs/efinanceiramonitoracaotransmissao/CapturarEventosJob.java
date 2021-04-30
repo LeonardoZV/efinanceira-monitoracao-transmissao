@@ -1,4 +1,4 @@
-package br.com.leonardozv.spark.streaming.exemplos.jobs;
+package br.com.leonardozv.spark.streaming.exemplos.jobs.efinanceiramonitoracaotransmissao;
 
 import static org.apache.spark.sql.avro.functions.*;
 import static org.apache.spark.sql.functions.*;
@@ -66,7 +66,6 @@ public class CapturarEventosJob {
                         col("headers").getItem("datacontenttype").cast("string").as("datacontenttype"),
                         from_avro(expr("substring(value, 6)"), schemaMetadata.getSchema()).as("payload"))
                 .withColumn("date", to_date(col("time")))
-                .withWatermark("time", "2 minutes")
                 .dropDuplicates("id")
                 .writeStream()
 //				.format("console")
@@ -75,8 +74,8 @@ public class CapturarEventosJob {
                 .partitionBy("date")
                 .format("parquet")
                 .outputMode("append")
-                .option("path","D:\\s3\\bkt-staging-data")
-                .option("checkpointLocation", "D:\\s3\\bkt-checkpoint-data\\capturar-eventos-job")
+                .option("path","D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data")
+                .option("checkpointLocation", "D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-checkpoint-data\\capturar-eventos-job")
                 .trigger(Trigger.Once())
                 .start()
                 .awaitTermination();

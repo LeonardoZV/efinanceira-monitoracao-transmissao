@@ -1,4 +1,4 @@
-package br.com.leonardozv.spark.streaming.exemplos.jobs;
+package br.com.leonardozv.spark.streaming.exemplos.jobs.efinanceiramonitoracaotransmissao;
 
 import static org.apache.spark.sql.avro.functions.*;
 import static org.apache.spark.sql.functions.*;
@@ -47,11 +47,6 @@ public class GerarRelatorioTransmissaoJob {
 
 		byte[] idBytes = ByteBuffer.allocate(4).putInt(schemaMetadata.getId()).array();
 
-		StructType schemaCadastroEmpresas = new StructType(new StructField[]{
-				new StructField("numero_cnpj_empresa", DataTypes.LongType, false, Metadata.empty()),
-				new StructField("nome_empresa", DataTypes.StringType, false, Metadata.empty()),
-		});
-
         SparkSession spark = SparkSession.builder()
                 .appName("GerarRelatorioTransmissaoJob")
                 .master("local[*]")
@@ -67,21 +62,21 @@ public class GerarRelatorioTransmissaoJob {
 				.read()
 				.format("csv")
 				.option("sep", ";")
-				.load("D:\\s3\\cadastro_empresas.csv")
-				.selectExpr("_c0 as numero_cnpj_empresa", "_c1 as nome_empresa_declarante" );
+				.load("D:\\s3\\efinanceira-monitoracao-transmissao\\cadastro_empresas.csv")
+				.selectExpr("_c0 as numero_cnpj_empresa", "_c1 as nome_empresa_declarante");
 
         Dataset<Row> stagingData = spark
 				.readStream()
 				.format("parquet")
-				.schema(spark.read().parquet("D:\\s3\\bkt-staging-data").schema())
-				.option("path", "D:\\s3\\bkt-staging-data")
+				.schema(spark.read().parquet("D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data").schema())
+				.option("path", "D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data")
 				.load()
 				.withColumn("numero_cnpj_empresa_declarante", expr("obterCnpjEmpresaDeclaranteEFinanceira(payload.data.codigo_evento_efinanceira)"));
 
 		stagingData.createOrReplaceTempView("evento");
 
 		sqlContext.sql("SELECT numero_cnpj_empresa_declarante, COUNT(*) as quantidade_eventos_transmitidos, COUNT(case when payload.data.codigo_retorno_transmissao = 1 then 1 else null end) as quantidade_eventos_transmitidos_sucesso, COUNT(case when payload.data.codigo_retorno_transmissao = 2 then 1 else null end) as quantidade_eventos_transmitidos_erro FROM evento GROUP BY numero_cnpj_empresa_declarante")
-				.join(cadastroEmpresas, col("numero_cnpj_empresa_declarante").equalTo(cadastroEmpresas.col("numero_cnpj_empresa")), "inner").drop("numero_cnpj_empresa")
+				.join(cadastroEmpresas, col("numero_cnpj_empresa_declarante").equalTo(col("numero_cnpj_empresa")), "inner").drop("numero_cnpj_empresa")
 				.withColumn("data",	struct("*"))
 				.withColumn("value", concat(lit(magicByte), lit(idBytes), to_avro(struct("data"), schemaMetadata.getSchema())))
 				.withColumn("headers ",
@@ -109,7 +104,7 @@ public class GerarRelatorioTransmissaoJob {
 				.option("kafka.sasl.mechanism", "PLAIN")
 				.option("topic", "relatorio-transmissao")
 				.option("includeHeaders", "true")
-				.option("checkpointLocation", "D:\\s3\\bkt-checkpoint-data\\gerar-relatorio-transmissao-job")
+				.option("checkpointLocation", "D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-checkpoint-data\\gerar-relatorio-transmissao-job")
 				.trigger(Trigger.Once())
 				.start()
 				.awaitTermination();
