@@ -1,28 +1,19 @@
-package br.com.leonardozv.spark.streaming.exemplos.jobs.efinanceiramonitoracaotransmissao;
+package br.com.leonardozv.spark.streaming.exemplos.java.efinanceira.jobs;
 
 import static org.apache.spark.sql.avro.functions.*;
 import static org.apache.spark.sql.functions.*;
 
-import br.com.leonardozv.spark.streaming.exemplos.services.EventoEFinanceiraService;
-import br.com.leonardozv.spark.streaming.exemplos.udfs.ConverterHeadersParaMap;
-import br.com.leonardozv.spark.streaming.exemplos.udfs.ObterCnpjEmpresaDeclaranteEFinanceira;
+import br.com.leonardozv.spark.streaming.exemplos.java.udfs.ObterCnpjEmpresaDeclaranteEFinanceira;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.RestService;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.streaming.StreamingQuery;
 import org.apache.spark.sql.streaming.Trigger;
-import org.apache.spark.sql.catalyst.expressions.Uuid;
 import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.Metadata;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -52,7 +43,7 @@ public class GerarRelatorioTransmissaoJob {
                 .master("local[*]")
                 .getOrCreate();
 
-		SQLContext sqlContext = new SQLContext(spark.sparkContext());
+		SQLContext sqlContext = new SQLContext(spark);
 
 		spark.sparkContext().setLogLevel("WARN");
 
@@ -69,8 +60,7 @@ public class GerarRelatorioTransmissaoJob {
 				.readStream()
 				.format("parquet")
 				.schema(spark.read().parquet("D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data").schema())
-				.option("path", "D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data")
-				.load()
+				.load("D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data")
 				.withColumn("numero_cnpj_empresa_declarante", expr("obterCnpjEmpresaDeclaranteEFinanceira(payload.data.codigo_evento_efinanceira)"));
 
 		stagingData.createOrReplaceTempView("evento");

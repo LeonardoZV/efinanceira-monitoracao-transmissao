@@ -1,6 +1,6 @@
-package br.com.leonardozv.spark.streaming.exemplos.jobs.eventdrivenledger;
+package br.com.leonardozv.spark.streaming.exemplos.java.eventdrivenledger.jobs;
 
-import br.com.leonardozv.spark.streaming.exemplos.udfs.ConverterHeadersParaMap;
+import br.com.leonardozv.spark.streaming.exemplos.java.udfs.ConverterHeadersParaMap;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -8,7 +8,6 @@ import io.confluent.kafka.schemaregistry.client.rest.RestService;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.streaming.Trigger;
 import org.apache.spark.sql.types.DataTypes;
 
 import java.util.HashMap;
@@ -17,7 +16,7 @@ import java.util.Map;
 import static org.apache.spark.sql.avro.functions.from_avro;
 import static org.apache.spark.sql.functions.*;
 
-public class AggregateAccountingDailyMovementJob {
+public class ProjectDailyLedgerMovementJob {
 
     public static void executar(String[] args) throws Exception {
 
@@ -33,7 +32,7 @@ public class AggregateAccountingDailyMovementJob {
         SchemaMetadata schemaMetadata = schemaRegistryClient.getLatestSchemaMetadata("accounting-journal-entry-created-value");
 
         SparkSession spark = SparkSession.builder()
-                .appName("AggregateAccountingDailyMovementJob")
+                .appName("ProjectDailyLedgerMovementJob")
                 .master("local[*]")
                 .config("spark.cleaner.referenceTracking.cleanCheckpoints", true)
                 .getOrCreate();
@@ -48,7 +47,7 @@ public class AggregateAccountingDailyMovementJob {
                 .option("kafka.security.protocol", "SASL_SSL")
                 .option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='BIMCMFF6WU3YBB34' password='Xnr9geulvxPYeyNeL2r56iyjNG5dwkB2CTnQz+syVZwOUfJIQFxmSJT0+MskxOnQ';")
                 .option("kafka.sasl.mechanism", "PLAIN")
-                .option("kafka.group.id", "event-driven-ledger-moviment")
+                .option("kafka.group.id", "ProjectAccountingDailyMovementJob")
                 .option("subscribe", "accounting-journal-entry-created")
                 .option("startingOffsets", "earliest")
                 .option("includeHeaders", "true")
@@ -80,7 +79,7 @@ public class AggregateAccountingDailyMovementJob {
 				.format("console")
        		    .outputMode("update")
 				.option("truncate", false)
-                .option("checkpointLocation", "D:\\s3\\event-driven-ledger\\bkt-checkpoint-data\\capture-accounting-journal-entry-events-job")
+                .option("checkpointLocation", "D:\\s3\\event-driven-ledger\\bkt-checkpoint-data\\ProjectDailyLedgerMovementJob")
 //                .trigger(Trigger.Once())
                 .start()
                 .awaitTermination();

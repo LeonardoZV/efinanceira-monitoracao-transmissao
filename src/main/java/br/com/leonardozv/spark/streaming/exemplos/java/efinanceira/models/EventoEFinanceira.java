@@ -1,4 +1,4 @@
-package br.com.leonardozv.spark.streaming.exemplos.models;
+package br.com.leonardozv.spark.streaming.exemplos.java.efinanceira.models;
 
 public class EventoEFinanceira {
 

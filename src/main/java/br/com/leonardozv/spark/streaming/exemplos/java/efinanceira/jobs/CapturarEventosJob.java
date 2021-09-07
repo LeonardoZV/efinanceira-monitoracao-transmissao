@@ -1,13 +1,13 @@
-package br.com.leonardozv.spark.streaming.exemplos.jobs.multivisao;
+package br.com.leonardozv.spark.streaming.exemplos.java.efinanceira.jobs;
 
-import br.com.leonardozv.spark.streaming.exemplos.udfs.ConverterHeadersParaMap;
+import static org.apache.spark.sql.avro.functions.*;
+import static org.apache.spark.sql.functions.*;
+
+import br.com.leonardozv.spark.streaming.exemplos.java.udfs.ConverterHeadersParaMap;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.RestService;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.streaming.Trigger;
 import org.apache.spark.sql.types.DataTypes;
@@ -15,10 +15,7 @@ import org.apache.spark.sql.types.DataTypes;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.spark.sql.avro.functions.from_avro;
-import static org.apache.spark.sql.functions.*;
-
-public class RegrasEventoTransferenciaRealizadaJob {
+public class CapturarEventosJob {
 
     public static void executar(String[] args) throws Exception {
 
@@ -31,10 +28,10 @@ public class RegrasEventoTransferenciaRealizadaJob {
 
         SchemaRegistryClient schemaRegistryClient = new CachedSchemaRegistryClient(restService, 100, props);
 
-        SchemaMetadata schemaMetadata = schemaRegistryClient.getLatestSchemaMetadata("transferencia-realizada-value");
+        SchemaMetadata schemaMetadata = schemaRegistryClient.getLatestSchemaMetadata("transmissao-efetuada-value");
 
         SparkSession spark = SparkSession.builder()
-                .appName("RegrasEventoTransferenciaRealizada")
+                .appName("CapturarEventosJob")
                 .master("local[*]")
                 .getOrCreate();
 
@@ -48,8 +45,8 @@ public class RegrasEventoTransferenciaRealizadaJob {
                 .option("kafka.security.protocol", "SASL_SSL")
                 .option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='BIMCMFF6WU3YBB34' password='Xnr9geulvxPYeyNeL2r56iyjNG5dwkB2CTnQz+syVZwOUfJIQFxmSJT0+MskxOnQ';")
                 .option("kafka.sasl.mechanism", "PLAIN")
-                .option("kafka.group.id", "multivisao")
-                .option("subscribe", "transferencia-realizada")
+                .option("kafka.group.id", "efinanceira-monitoracao-transmissao")
+                .option("subscribe", "transmissao-efetuada")
                 .option("startingOffsets", "earliest")
                 .option("includeHeaders", "true")
                 .load()
@@ -69,32 +66,18 @@ public class RegrasEventoTransferenciaRealizadaJob {
                         col("headers").getItem("datacontenttype").cast("string").as("datacontenttype"),
                         from_avro(expr("substring(value, 6)"), schemaMetadata.getSchema()).as("payload"))
                 .withColumn("date", to_date(col("time")))
-                .withWatermark("time", "5 minutes")
+                .withWatermark("time", "10 seconds")
                 .dropDuplicates("id")
                 .writeStream()
-                .foreachBatch((evento, batchId) -> {
-
-                    evento.persist();
-
-                    evento.write().format("parquet").mode(SaveMode.Append).save("D:\\s3\\multivisao\\bkt-staging-data\\rt-evento-transferencia-realizada");
-                    evento.createOrReplaceTempView("evento");
-
-                    Dataset<Row> contabil = evento.sqlContext().sql("SELECT uuid() as id, id as codigo_evento_produto, CAST('00001' AS STRING) AS codigo_regra_transformacao, CAST('TED001' AS STRING) AS codigo_roteiro_contabil, CAST(NULL AS STRING) AS numero_conta_contabil_interna_debito, CAST(NULL AS STRING) AS numero_conta_contabil_interna_credito, payload.data.codigo_empresa AS codigo_empresa, payload.data.valor AS valor_lancamento FROM evento WHERE payload.data.codigo_produto_operacional = 100 AND payload.data.valor > 0");
-                    contabil.write().format("parquet").mode(SaveMode.Append).save("D:\\s3\\multivisao\\bkt-staging-data\\contabil");
-                    contabil.createOrReplaceTempView("contabil");
-                    contabil.show();
-
-                    Dataset<Row> fiscal = evento.sqlContext().sql("SELECT uuid() as id, id as codigo_evento_produto, CAST('00002' AS STRING) AS codigo_regra_transformacao, CAST('01' AS STRING) AS codigo_imposto, numero_conta_contabil_interna_debito AS numero_conta_contabil_interna_debito, codigo_empresa AS codigo_empresa, valor_lancamento AS valor_recolhido FROM contabil WHERE codigo_regra_transformacao = '00001'");
-                    fiscal.write().format("parquet").mode(SaveMode.Append).save("D:\\s3\\multivisao\\bkt-staging-data\\fiscal");
-                    fiscal.createOrReplaceTempView("fiscal");
-                    fiscal.show();
-
-                    evento.unpersist();
-
-                })
-//                .option("checkpointLocation", "D:\\s3\\multivisao\\bkt-checkpoint-data\\rt-evento-transferencia-realizada")
+//				.format("console")
+//       		.outputMode("update")
+//				.option("truncate", false)
+                .partitionBy("date")
+                .format("delta")
+                .outputMode("append")
+                .option("checkpointLocation", "D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-checkpoint-data\\capturar-eventos-job")
                 .trigger(Trigger.Once())
-                .start()
+                .start("D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data")
                 .awaitTermination();
 
     }

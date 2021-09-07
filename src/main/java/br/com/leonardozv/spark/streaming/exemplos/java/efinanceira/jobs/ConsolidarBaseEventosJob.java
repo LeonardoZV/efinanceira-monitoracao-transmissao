@@ -1,4 +1,4 @@
-package br.com.leonardozv.spark.streaming.exemplos.jobs.efinanceiramonitoracaotransmissao;
+package br.com.leonardozv.spark.streaming.exemplos.java.efinanceira.jobs;
 
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.streaming.Trigger;
@@ -17,16 +17,14 @@ public class ConsolidarBaseEventosJob {
         spark.readStream()
                 .format("parquet")
                 .schema(spark.read().parquet("D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data").schema())
-                .option("path", "D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data")
-                .load()
+                .load("D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-staging-data")
                 .writeStream()
                 .partitionBy("date")
                 .format("parquet")
                 .outputMode("append")
-                .option("path","D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-raw-data")
                 .option("checkpointLocation", "D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-checkpoint-data\\consolidar-base-eventos-job")
                 .trigger(Trigger.Once())
-                .start()
+                .start("D:\\s3\\efinanceira-monitoracao-transmissao\\bkt-raw-data")
                 .awaitTermination();
 
     }

@@ -1,6 +1,6 @@
-package br.com.leonardozv.spark.streaming.exemplos.services;
+package br.com.leonardozv.spark.streaming.exemplos.java.efinanceira.services;
 
-import br.com.leonardozv.spark.streaming.exemplos.models.EventoEFinanceira;
+import br.com.leonardozv.spark.streaming.exemplos.java.efinanceira.models.EventoEFinanceira;
 
 public class EventoEFinanceiraService {
 

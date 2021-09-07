@@ -1,4 +1,4 @@
-package br.com.leonardozv.spark.streaming.exemplos.udfs;
+package br.com.leonardozv.spark.streaming.exemplos.java.udfs;
 
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.spark.sql.api.java.UDF1;

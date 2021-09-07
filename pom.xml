@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>	
 	<groupId>br.com.leonardozv</groupId>
 	<artifactId>spark-streaming-kafka-java-exemplos</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>	
 	<name>spark-streaming-kafka-java-exemplos</name>
 
@@ -13,7 +13,9 @@
 		<scala.version>2.12.13</scala.version>
 		<scala.compat.version>2.12</scala.compat.version>
 		<spark.version>3.1.1</spark.version>
+		<antlr4.version>4.8</antlr4.version>
 		<confluent.version>5.3.0</confluent.version>
+		<delta.version>1.0.0</delta.version>
 	</properties>
 
    <repositories>
@@ -25,30 +27,27 @@
 
 	<dependencies>
 
+		<!-- Scala Libs -->
 		<dependency>
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-library</artifactId>
 			<version>${scala.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.scala-lang.modules</groupId>
 			<artifactId>scala-xml_${scala.compat.version}</artifactId>
 			<version>1.1.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.scala-lang.modules</groupId>
 			<artifactId>scala-parser-combinators_${scala.compat.version}</artifactId>
 			<version>1.1.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.scala-lang.modules</groupId>
 			<artifactId>scala-swing_${scala.compat.version}</artifactId>
 			<version>2.0.3</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.scalatest</groupId>
 			<artifactId>scalatest_2.12</artifactId>
@@ -56,41 +55,53 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Spark Libs -->
 		<dependency>
 		    <groupId>org.apache.spark</groupId>
 		    <artifactId>spark-core_${scala.compat.version}</artifactId>
 		    <version>${spark.version}</version>
 		    <scope>provided</scope>
-		</dependency>	    
-
+		</dependency>
 		<dependency>
 		  <groupId>org.apache.spark</groupId>
 		  <artifactId>spark-sql_${scala.compat.version}</artifactId>
 		  <version>${spark.version}</version>
 		</dependency>
-
 	    <dependency>
 		    <groupId>org.apache.spark</groupId>
 		    <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
 		    <version>${spark.version}</version>
 		</dependency>
-		
 		<dependency>
 		    <groupId>org.apache.spark</groupId>
 		    <artifactId>spark-avro_${scala.compat.version}</artifactId>
 		    <version>${spark.version}</version>
 		</dependency>
-		
-<!-- 		<dependency> -->
-<!-- 		  <groupId>io.confluent</groupId> -->
-<!-- 		  <artifactId>kafka-schema-registry-client</artifactId> -->
-<!-- 		  <version>${confluent.version}</version> -->
-<!-- 		</dependency> -->
-		
 		<dependency>
-		  <groupId>io.confluent</groupId>
-		  <artifactId>kafka-avro-serializer</artifactId>
-		  <version>${confluent.version}</version>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-graphx_${scala.compat.version}</artifactId>
+			<version>${spark.version}</version>
+		</dependency>
+
+		<!-- Corrects warning of Spark GraphX -->
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr4</artifactId>
+			<version>${antlr4.version}</version>
+		</dependency>
+
+		<!-- Kafka Libs -->
+ 		<dependency>
+ 		  <groupId>io.confluent</groupId>
+ 		  <artifactId>kafka-schema-registry-client</artifactId>
+ 		  <version>${confluent.version}</version>
+ 		</dependency>
+
+		<!-- Delta Lib -->
+		<dependency>
+			<groupId>io.delta</groupId>
+			<artifactId>delta-core_${scala.compat.version}</artifactId>
+			<version>${delta.version}</version>
 		</dependency>
 		
 	</dependencies>

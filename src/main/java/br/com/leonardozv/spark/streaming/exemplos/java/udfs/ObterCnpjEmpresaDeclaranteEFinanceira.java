@@ -1,10 +1,7 @@
-package br.com.leonardozv.spark.streaming.exemplos.udfs;
+package br.com.leonardozv.spark.streaming.exemplos.java.udfs;
 
-import br.com.leonardozv.spark.streaming.exemplos.services.EventoEFinanceiraService;
-import org.apache.kafka.common.errors.SerializationException;
+import br.com.leonardozv.spark.streaming.exemplos.java.efinanceira.services.EventoEFinanceiraService;
 import org.apache.spark.sql.api.java.UDF1;
-
-import java.nio.ByteBuffer;
 
 public class ObterCnpjEmpresaDeclaranteEFinanceira implements UDF1<String, Long> {
 
